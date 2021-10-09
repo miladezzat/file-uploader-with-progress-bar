@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File uploader</title>
+  <style>
+    #progressbar {
+      border-radius: 13px;
+      padding: 3px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>My file uploader</h1>
+
+  File: <input type='file' id='f'>
+  <button id='btnUpload'>Read & Upload</button>
+  <div id='divOutput'>
+
+  </div>
+
+  <div id="url"></div>
+
+  <script>
+    function uuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+        function (c) {
+          let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        }) + '-' + Date.now().toString(32);
+    }
+
+    const btnUpload = document.getElementById("btnUpload");
+    const divOutput = document.getElementById("divOutput");
+    const f = document.getElementById("f");
+
+    btnUpload.addEventListener("click", () => {
+
+      const fileReader = new FileReader();
+      const theFile = f.files[0];
+      fileReader.onload = async ev => {
+
+        const chunkCount = Math.floor((ev.target.result.byteLength / (1024 * 1024)) * 0.5) + 1;
+
+        const CHUNK_SIZE = ev.target.result.byteLength / chunkCount;
+
+        const fileName = uuid() + '-' + theFile.name;
+
+        for (let chunkId = 0; chunkId < chunkCount + 1; chunkId++) {
+
+          const chunk = ev.target.result.slice(chunkId * CHUNK_SIZE, chunkId * CHUNK_SIZE + CHUNK_SIZE);
+
+          await fetch("http://localhost:3000/upload", {
+            "method": "POST",
+            "headers": {
+              "content-type": "application/octet-stream",
+              "content-length": chunk.length,
+              "file-name": fileName
+            },
+            "body": chunk
+          });
+
+          divOutput.innerHTML = `
+          <div id="progressbar">
+            <div style ="background-color: orange; width: ${Math.floor(chunkId * CHUNK_SIZE * 100 / ev.target.result.byteLength, 0)}%; height: 20px;border-radius: 10px;">
+              ${Math.floor(chunkId * CHUNK_SIZE * 100 / ev.target.result.byteLength, 0)}%
+            </div>
+          </div>
+          `;
+        }
+
+        const response = await fetch("http://localhost:3000/upload", {
+          "method": "POST",
+
+          "headers": {
+            "content-type": "application/json",
+            "file-name": fileName,
+            done: true,
+          },
+
+          "body": JSON.stringify({ "done": true }),
+        });
+
+        const data = await response.json();
+        document.getElementById('url').innerHTML = `<a href=${data.url}> ${data.url} </a>`;
+
+        // setTimeout(() => {
+        //   window.location.href = '/';
+        // }, 1000);
+      }
+      fileReader.readAsArrayBuffer(theFile);
+    });
+
+  </script>
+
+
+</body>
+
+</html>
