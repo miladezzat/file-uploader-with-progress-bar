@@ -2,8 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+const port = process.env.PORT || 3000;
 const httpServer = http.createServer();
-
 const mime = {
   html: 'text/html',
   txt: 'text/plain',
@@ -63,6 +63,6 @@ httpServer.on('request', (req, res) => {
 
 });
 
-httpServer.listen(3000, () => {
-  console.log('Server running on port 3000');
+httpServer.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
