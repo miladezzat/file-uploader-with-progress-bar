@@ -55,7 +55,7 @@
 
           const chunk = ev.target.result.slice(chunkId * CHUNK_SIZE, chunkId * CHUNK_SIZE + CHUNK_SIZE);
 
-          await fetch("http://localhost:3000/upload", {
+          await fetch("https://file-upload-progress-bar.herokuapp.com/upload", {
             "method": "POST",
             "headers": {
               "content-type": "application/octet-stream",
@@ -74,7 +74,7 @@
           `;
         }
 
-        const response = await fetch("http://localhost:3000/upload", {
+        const response = await fetch("https://file-upload-progress-bar.herokuapp.com/upload", {
           "method": "POST",
 
           "headers": {
